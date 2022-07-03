@@ -1,0 +1,321 @@
+# My epic FVWM config
+# Hayden Buscher, 2022
+
+# Environment variables
+SetEnv fvwm_img $[FVWM_USERDIR]/images
+SetEnv fvwm_icon $[FVWM_USERDIR]/icons
+SetEnv fvwm_scrpt $./scripts
+SetEnv fvwm_wallpapers $[FVWM_USERDIR]/Pictures/Wallpapers
+
+InfoStoreAdd terminal terminator
+InfoStoreAdd browser vivaldi
+InfoStoreAdd editor nano
+InfoStoreAdd fileman xfe
+
+EwmhBaseStruts 0 0 0 20
+
+
+# Virtual desktops
+DesktopSize 2x2
+DesktopName Main
+EdgeScroll 100 100
+EdgeResistance 150  150
+EdgeThickness 1
+
+
+# Mouse & focus
+ClickTime 250
+MoveThreshold 3
+Style * SloppyFocus, MouseFocusClickRaises
+IgnoreModifiers L25
+
+
+# Global styles
+Style * ResizeOpaque, ResizeHintOverride
+Style * MwmBorder, BorderWidth 3, !Handles
+Style * EdgeMoveDelay 250
+Style * TileCascadePlacement
+Style * DecorateTransient
+Style * SnapAttraction 15 SameType ScreenAll, SnapGrid 2
+
+Style * Colorset 0
+Style * HilightColorset 2
+
+MenuStyle * MenuColorset 1
+
+#DefaultFont "xft:times new roman:bold:size=10.5:antialias=true"
+
+
+# Colorsets
+Colorset 0 fg dimgray, bg rgb:34/36/37
+Colorset 1 fg black, bg rgb:74/76/77
+Colorset 2 fg rgb:ee/ee/ee, bg rgb:34/36/37
+#rgb:b2/4d/79
+
+
+# Basic functions
+DestroyFunc FvwmWindowOrDelete
+AddToFunc   FvwmWindowOrDelete
++ H Nop
++ M Nop
++ C Menu FvwmWindowOps
++ D Close
+
+DestroyFunc FvwmIconifyOrShade
+AddToFunc   FvwmIconifyOrShade
++ C Iconify
++ D WindowShade
+
+DestroyFunc FvwmMaximize
+AddToFunc   FvwmMaximize
++ H Nop
++ M Nop
++ C Maximize $0 $1
+
+DestroyFunc FvwmMoveOrIconify
+AddToFunc   FvwmMoveOrIconify
++ M Move
++ D Iconify
+
+DestroyFunc FvwmWindowShade
+AddToFunc   FvwmWindowShade
++ D WindowShade $0
+
+
+# Launching functions
+DestroyFunc FvwmViewManPage
+AddToFunc   FvwmViewManPage
++ I Exec exec xterm -fg White -bg DarkBlue -g 80x40 -fn 7x14 -fb 7x14bold \
+ -n "Manual Page - $0" -T "Manual Page - $0" -e man "$0"
+
+
+# Startup functions
+DestroyFunc StartFunction
+AddToFunc   StartFunction
++ I Module FvwmButtons LaunchBox
++ I Module FvwmButtons PageBox
++ I Exec exec fvwm-root $[FVWM_USERDIR]/../Pictures/Wallpapers/fvwm/bg3.png
+#+ I Exec exec $[infostore.terminal]
+
+DestroyFunc RestartFunction
+AddToFunc   RestartFunction
++ I Nop
+
+
+# Basic bindings
+Key F1 A M Menu FvwmRootMenu
+Key F2 A M Menu FvwmWindowOps
+Mouse 1 R A Menu FvwmRootMenu
+Mouse 1 1 A FvwmWindowOrDelete
+Mouse 1 4 A FvwmIconifyOrShade
+Mouse 1 2 A FvwmMaximize 100 100
+Mouse 2 2 A FvwmMaximize 0 100
+Mouse 3 2 A FvwmMaximize 100 0
+Mouse 1 W M FvwmMoveOrIconify
+Mouse 1 I A FvwmMoveOrIconify
+Mouse 4 T A FvwmWindowShade True
+Mouse 5 T A FvwmWindowShade False
+
+
+# Multimedia Keys
+Key XF86AudioLowerVolume A      N       Exec exec amixer set Master 10%- > /dev/null
+Key XF86AudioRaiseVolume A      N       Exec exec amixer set Master 10%+ > /dev/null
+key XF86AudioMute        A      N       Exec exec amixer -q set Master toggle > /dev/null
+
+
+# Window Decor
+DestroyDecor MyDecor
+AddToDecor   MyDecor
++ AddButtonStyle All Inactive Vector 5 47x47@3 57x53@3 53x53@3 53x47@3 47x47@3
++ AddButtonStyle 1 Active Vector 5 45x45@3 55x45@3 55x55@3 45x55@3 45x45@3
++ AddButtonStyle 1 Active Vector 5 49x49@3 51x49@3 51x51@3 49x51@3 49x49@3
++ AddButtonStyle 2 Active Vector 5 30x30@3 30x70@3 70x70@3 70x30@3 30x30@3
++ AddButtonStyle 2 Active Vector 5 30x30@3 30x35@3 70x35@3 70x30@3 30x30@3
++ AddButtonStyle 4 Active Vector 5 30x60@3 70x60@3 70x55@3 30x55@3 30x60@3
+
++ ButtonStyle All -- Flat
+
+#+ TitleStyle Active TiledPixmap ../Downloads/window_bg.png -- Flat
++ TitleStyle Height 18 -- Flat
+
+
+# Window Styles
+Style * UseDecor MyDecor
+
+
+# Menu Styles
+MenuStyle * ItemFormat "%30p%l%>%.30p"
+
+
+# Root Menu
+DestroyMenu FvwmRootMenu
+AddToMenu   FvwmRootMenu "Root Menu" Title
++ "&X. XFGMenu%icons/apps.png%" Popup XDGMenu
++ "&B. Browser%menu/browser.png%"  exec $[infostore.browser]
++ "&E. Editor%menu/editor.png%"  exec $[infostore.editor]
++ "&F. File Manager%menu/fileman.png%" exec $[infostore.fileman]
++ "" Nop
++ "&C. Console%menu/terminal.png%"  exec $[infostore.terminal]
++ "&V. FVWM Console%menu/terminal.png%"  Module FvwmConsole
++ "" Nop
++ "&H. Help%menu/help.png%"  Popup FvwmManPages
++ "&R. Restart FVWM%menu/restart.png%"  Restart
++ "&Q. Quit FVWM%menu/quit.png%"  Quit
+PipeRead "fvwm-menu-desktop -e"
+
+
+# Window Ops
+DestroyMenu FvwmWindowOps
+AddToMenu FvwmWindowOps
++ "&M. Move" Move
++ "&R. Resize" Resize
++ "&I. Iconify" Iconify
++ "&A. Maximize" Maximize
++ "&S. Shade" WindowShade
++ "&T. Stick" Stick
++ "" Nop
++ "&C. Close" Close
++ "&O. More..." Menu Window-Ops2 This 0 0
+
+
+DestroyMenu Window-Ops2
+AddToMenu Window-Ops2   "&Move"          Move
++                       "&Resize"        Resize
++                       "&Raise"         Raise
++                       "&Lower"         Lower
++                       "(De)&Iconify"   Iconify
++                       "(Un)&Stick"     Stick
++                       "(Un)&Maximize"  Maximize
++                       ""               Nop
++                       "&Delete"        Delete
++                       "&Close"         Close
++                       "&Destroy"       Destroy
++                       "&ScrollBar"     Module FvwmScroll 2 2
++                       "&Print"         PrintFunction
++                       "&Print Reverse" PrintReverseFunction
+
+
+
+# Window Ops (Long)
+DestroyMenu FvwmWindowOpsLong
+AddToMenu FvwmWindowOpsLong
++ "&M. Move" Move
++ "&R. Resize" Resize
++ "&I. (De)Iconify" Iconify
++ "&A. (Un)Maximize" Maximize
++ "&S. (Un)Shade" WindowShade
++ "&T. (Un)Sticky" Stick
++ "&L. (No)TitleBar" Pick (CirculateHit) ToggleTitle
++ "&E. Send To" Popup MenuSendTo
++ "" Nop
++ "&C. Close" Close
++ "&D. Destroy" Destroy
++ "" Nop
++ "&1. Raise" Raise
++ "&2. Lower" Lower
++ "" Nop
++ "&3. StaysOnTop" Pick (CirculateHit) Layer 0 6
++ "&4. StaysPut" Pick (CirculateHit) Layer 0 4
++ "&5. StaysOnBottom" Pick (CirculateHit) Layer 0 2
++ "" Nop
++ "&6. Identify" Module FvwmIdent
+
+
+# Send To
+DestroyMenu MenuSendTo
+AddToMenu MenuSendTo
++ "&C. Current" MoveToCurrent
++ "&P. Page" PopUp MenuSendToPage
++ "&D. Desk" PopUp MenuSendToDesk
+
+DestroyMenu MenuSendToDesk
+AddToMenu MenuSendToDesk
++ "&0. Desk 0" MoveToDesk 0 0
++ "&1. Desk 1" MoveToDesk 0 1
++ "&2. Desk 2" MoveToDesk 0 2
++ "&3. Desk 3" MoveToDesk 0 3
+
+DestroyMenu MenuSendToPage
+AddToMenu MenuSendToPage
++ "&0. Page (0,0)" MoveToPage 0 0
++ "&1. Page (0,1)" MoveToPage 0 1
++ "&2. Page (1,0)" MoveToPage 1 0
++ "&3. Page (1,1)" MoveToPage 1 1
+
+
+# Man Pages
+DestroyMenu FvwmManPages
+AddToMenu FvwmManPages "Help" Title
++ "fvwm" ViewManPage fvwm
++ "FvwmAnimate" ViewManPage FvwmAnimate
++ "FvwmAuto" ViewManPage FvwmAuto
++ "FvwmBacker" ViewManPage FvwmBacker
++ "FvwmBanner" ViewManPage FvwmBanner
++ "FvwmButtons" ViewManPage FvwmButtons
++ "FvwmCommand" ViewManPage FvwmCommand
++ "FvwmConsole" ViewManPage FvwmConsole
++ "FvwmEvent" ViewManPage FvwmEvent
++ "FvwmForm" ViewManPage FvwmForm
++ "FvwmIconMan" ViewManPage FvwmIconMan
++ "FvwmIdent" ViewManPage FvwmIdent
++ "FvwmPager" ViewManPage FvwmPager
++ "FvwmPerl" ViewManPage FvwmPerl
++ "FvwmProxy" ViewManPage FvwmProxy
++ "FvwmRearrange" ViewManPage FvwmRearrange
++ "FvwmScript" ViewManPage FvwmScript
++ "" Nop
++ "fvwm-root" ViewManPage fvwm-root
++ "fvwm-menu-desktop" ViewManPage fvwm-menu-desktop
++ "fvwm-menu-directory" ViewManPage fvwm-menu-directory
++ "fvwm-menu-headlines" ViewManPage fvwm-menu-headlines
++ "fvwm-menu-xlock" ViewManPage fvwm-menu-xlock
++ "fvwm-config" ViewManPage fvwm-config
+
+# Launch Box
+Style "LaunchBox" NoTitle, Sticky, FixedPosition, StaysOnBottom, FixedSize, !Iconifiable, WindowListSkip, NoHandles, !Borders, BorderWidth 6
+DestroyModuleConfig LaunchBox *
+*LaunchBox: Geometry 1366x20+0+748
+*LaunchBox: Rows 1
+*LaunchBox: Columns 1
+*LaunchBox: Colorset 2
+*LaunchBox: (Frame 1, Swallow StatusBar \ 'Module FvwmButtons StatusBar')
+
+# StatusBar
+Style "StatusBar" NoTitle, Sticky, FixedPosition, StaysOnBottom, FixedSize, !Iconifiable, WindowListSkip, NoHandles, !Borders, BorderWidth 6
+DestroyModuleConfig StatusBar *
+*StatusBar: Geometry 1366x20+200+0
+*StatusBar: Rows 1
+*StatusBar: Columns 3
+*StatusBar: Colorset 2
+*StatusBar: (1x1, Frame 0, nop)
+#*StatusBar: (1x1, Frame 0, Swallow cpu-script 'FvwmScript scripts/cpu-script')
+#*StatusBar: (1x1, Frame 0, Swallow temp-script 'FvwmScript scripts/temp-script')
+#*StatusBar: (1x1, Frame 0, Swallow battery-script 'FvwmScript scripts/battery-script')
+*StatusBar: (2x1 right, Frame 0, Swallow clock-script 'FvwmScript scripts/status-script')
+
+# Page Box
+Style "PageBox" NoTitle, Sticky, FixedPosition, StaysOnBottom, FixedSize, !Iconifiable, WindowListSkip, NoHandles, !Borders, BorderWidth 6
+DestroyModuleConfig PageBox *
+*PageBox: Geometry 148x108+1218+0
+*PageBox: Rows 1
+*PageBox: Columns 1
+*PageBox: Colorset 2
+*PageBox: (Frame 1, Swallow FvwmPager \ 'Module FvwmPager * *')
+
+Style FvwmPager
+*FvwmPager: WindowColorsets 1 1
+*FvwmPager: HilightPixmap window_bg.png
+*FvwmPager: Pixmap ../Pictures/Wallpapers/fvwm/bg3.png
+
+# Icon Manager
+DestroyModuleConfig FvwmIconMan: *
+*FvwmIconMan: UseWinList true
+*FvwmIconMan: ButtonGeometry 100x20
+*FvwmIconMan: ManagerGeometry 1x1
+*FvwmIconMan: Format "%t"
+*FvwmIconMan: Action Mouse 0 A ret
+*FvwmIconMan: Action Mouse 1 A sendcommand IconManClick
+*FvwmIconMan: Action Mouse 3 A sendcommand "Menu MenuIconOps"
+*FvwmIconMan: Resolution global
+*FvwmIconMan: Tips needed
+*FvwmIconMan: Sort idStyle "IconMan" NoTitle
